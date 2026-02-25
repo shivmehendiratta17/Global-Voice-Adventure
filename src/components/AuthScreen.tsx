@@ -69,9 +69,9 @@ export function AuthScreen({ onLoginSuccess, onViewLeaderboard, onViewProtocol }
         
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400 mb-4">
-            Global Voice
+            Global Voice Adventure
           </h1>
-          <p className="text-lg text-zinc-400 font-light tracking-wide">A Warrior's Adventure</p>
+          <p className="text-lg text-zinc-400 font-light tracking-wide">Designed by: Shiv Mehendiratta | 2026</p>
         </div>
 
         <div className="flex bg-black/40 rounded-xl p-1 mb-8 border border-white/5">
