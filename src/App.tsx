@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthScreen } from './components/AuthScreen';
 import { LevelSelect } from './components/LevelSelect';
 import { GameScreen } from './components/GameScreen';
@@ -288,6 +289,7 @@ export default function App() {
       {gameState !== 'auth' && gameState !== 'leaderboard' && gameState !== 'analytics' && gameState !== 'protocol' && (
         <Chatbot currentQuestion={gameState === 'playing' ? currentQuestion : null} />
       )}
+      <Analytics />
     </div>
   );
 }
