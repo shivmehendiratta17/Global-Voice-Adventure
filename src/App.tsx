@@ -13,6 +13,7 @@ import { audioController } from './lib/audioController';
 import { questions } from './data/questions';
 import { saveProgress, UserProfile, loginAccount, getRankFromXP } from './lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 type GameState = 'auth' | 'level_select' | 'playing' | 'round_summary' | 'leaderboard' | 'analytics' | 'protocol';
 
@@ -288,6 +289,8 @@ export default function App() {
       {gameState !== 'auth' && gameState !== 'leaderboard' && gameState !== 'analytics' && gameState !== 'protocol' && (
         <Chatbot currentQuestion={gameState === 'playing' ? currentQuestion : null} />
       )}
+      
+      <SpeedInsights />
     </div>
   );
 }
