@@ -1,5 +1,62 @@
 @import "tailwindcss";
 
+@theme {
+  --color-theme-bg: var(--theme-bg);
+  --color-theme-text: var(--theme-text);
+  --color-theme-primary: var(--theme-primary);
+  --color-theme-secondary: var(--theme-secondary);
+  --color-theme-accent: var(--theme-accent);
+  --color-theme-panel: var(--theme-panel);
+  --color-theme-border: var(--theme-border);
+}
+
+:root {
+  /* Default: Executive Dark */
+  --theme-bg: #09090b; /* zinc-950 */
+  --theme-text: #f4f4f5; /* zinc-100 */
+  --theme-primary: #06b6d4; /* cyan-500 */
+  --theme-secondary: #2563eb; /* blue-600 */
+  --theme-accent: #fbbf24; /* amber-400 */
+  --theme-panel: rgba(24, 24, 27, 0.6); /* zinc-900/60 */
+  --theme-border: rgba(255, 255, 255, 0.1);
+}
+
+.theme-executive-dark {
+  --theme-bg: #09090b;
+  --theme-text: #f4f4f5;
+  --theme-primary: #06b6d4;
+  --theme-secondary: #2563eb;
+  --theme-accent: #fbbf24;
+  --theme-panel: rgba(24, 24, 27, 0.6);
+  --theme-border: rgba(255, 255, 255, 0.1);
+}
+
+.theme-cyber-neon {
+  --theme-bg: #050505;
+  --theme-text: #f3f4f6;
+  --theme-primary: #d946ef; /* fuchsia-500 */
+  --theme-secondary: #8b5cf6; /* violet-500 */
+  --theme-accent: #10b981; /* emerald-500 */
+  --theme-panel: rgba(10, 10, 10, 0.8);
+  --theme-border: rgba(217, 70, 239, 0.3);
+}
+
+.theme-deep-ocean {
+  --theme-bg: #020617; /* slate-950 */
+  --theme-text: #e2e8f0; /* slate-200 */
+  --theme-primary: #3b82f6; /* blue-500 */
+  --theme-secondary: #0ea5e9; /* sky-500 */
+  --theme-accent: #f43f5e; /* rose-500 */
+  --theme-panel: rgba(15, 23, 42, 0.7);
+  --theme-border: rgba(59, 130, 246, 0.2);
+}
+
+body {
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
 /* Scroll Reveal Animations */
 .reveal-on-scroll {
   opacity: 0;

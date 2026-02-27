@@ -33,6 +33,8 @@ export interface UserProfile {
   totalResponseTime: number;
   highestStreak: number;
   categoryStats: CategoryStats;
+  cooldowns?: { [gameId: string]: number };
+  achievements?: string[];
   createdAt: any;
 }
 
@@ -67,6 +69,8 @@ export async function createAccount(username: string, keyHash: string): Promise<
       totalResponseTime: 0,
       highestStreak: 0,
       categoryStats: {},
+      cooldowns: {},
+      achievements: [],
       createdAt: serverTimestamp()
     };
 
@@ -100,6 +104,8 @@ export async function loginAccount(username: string, keyHash: string): Promise<U
       userData.totalResponseTime = userData.totalResponseTime || 0;
       userData.highestStreak = userData.highestStreak || 0;
       userData.categoryStats = userData.categoryStats || {};
+      userData.cooldowns = userData.cooldowns || {};
+      userData.achievements = userData.achievements || [];
     }
 
     return userData;

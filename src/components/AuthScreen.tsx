@@ -3,7 +3,6 @@ import { motion } from 'motion/react';
 import { Play, Trophy, UserPlus, LogIn, Loader2 } from 'lucide-react';
 import { createAccount, loginAccount, UserProfile } from '../lib/firebase';
 import { hashKey } from '../lib/crypto';
-import { audioController } from '../lib/audioController';
 import { clsx } from 'clsx';
 
 interface AuthScreenProps {
@@ -23,9 +22,6 @@ export function AuthScreen({ onLoginSuccess, onViewLeaderboard, onViewProtocol }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
-    // Trigger audio if enabled on explicit user interaction
-    audioController.playIfEnabled();
     
     const trimmedUsername = username.trim();
     if (trimmedUsername.length < 3 || trimmedUsername.length > 15) {
@@ -71,7 +67,7 @@ export function AuthScreen({ onLoginSuccess, onViewLeaderboard, onViewProtocol }
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-400 mb-4">
             Global Voice Adventure
           </h1>
-          <p className="text-lg text-zinc-400 font-light tracking-wide">Designed by: Shiv Mehendiratta | 2026</p>
+          <p className="text-lg text-zinc-400 font-light tracking-wide">Designed by: Shiv Mehendiratta</p>
         </div>
 
         <div className="flex bg-black/40 rounded-xl p-1 mb-8 border border-white/5">
