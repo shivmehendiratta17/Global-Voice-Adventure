@@ -148,24 +148,7 @@ export function ProtocolScreen({ onBack }: ProtocolScreenProps) {
             </div>
           </section>
 
-          {/* Section 4: The Oracle */}
-          <section className="reveal-on-scroll">
-            <div className="flex items-center gap-4 mb-8">
-              <Brain className="text-amber-500/80" size={28} />
-              <h2 className="text-3xl font-serif font-bold text-white glow-underline inline-block pb-2">
-                IV. The Oracle
-              </h2>
-            </div>
-            <div className="bg-zinc-900/40 backdrop-blur-xl border border-white/5 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden group hover:border-amber-500/20 transition-colors duration-500">
-              <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-amber-500 to-transparent opacity-50"></div>
-              <p className="text-lg leading-relaxed text-zinc-300 mb-6 font-light">
-                When the path is obscured, scholars may consult The Oracle—an advanced AI entity bound to the platform. The Oracle provides cryptic, strategic hints without revealing the exact solution.
-              </p>
-              <p className="text-lg leading-relaxed text-zinc-300 font-light">
-                Use this resource wisely. True mastery comes from internal deduction, but guidance is available for those who seek it.
-              </p>
-            </div>
-          </section>
+          {/* Section 4: Removed Oracle */}
 
         </div>
         

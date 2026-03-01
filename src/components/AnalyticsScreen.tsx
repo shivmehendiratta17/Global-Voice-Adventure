@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Target, Clock, Zap, Brain, TrendingUp, Award } from 'lucide-react';
-import { UserProfile } from '../lib/firebase';
+import { UserProfile } from '../lib/api';
 import { clsx } from 'clsx';
 
 interface AnalyticsScreenProps {

@@ -1,11 +1,31 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Trophy, Medal, Star } from 'lucide-react';
+import { getLeaderboard } from '../../lib/api';
+
+interface LeaderboardEntry {
+  username: string;
+  totalXP: number;
+  rank: string;
+}
 
 export function LeaderboardPage() {
-  const mockLeaderboard = [
-    { rank: 1, name: 'shiv07Mahi', score: 6700, tier: 'Intellectual Vanguard' },
-  ];
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const data = await getLeaderboard();
+        setLeaderboard(data);
+      } catch (error) {
+        console.error("Failed to fetch leaderboard", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLeaderboard();
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto py-12">
@@ -33,31 +53,40 @@ export function LeaderboardPage() {
         </div>
 
         <div className="divide-y divide-white/5">
-          {mockLeaderboard.map((entry, idx) => (
-            <motion.div
-              key={entry.rank}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 * idx }}
-              className="grid grid-cols-12 gap-4 p-6 items-center hover:bg-white/5 transition-colors group"
-            >
-              <div className="col-span-2 flex justify-center">
-                {entry.rank === 1 ? <Medal className="text-amber-400" size={24} /> :
-                 entry.rank === 2 ? <Medal className="text-zinc-300" size={24} /> :
-                 entry.rank === 3 ? <Medal className="text-amber-700" size={24} /> :
-                 <span className="text-zinc-500 font-mono text-lg">{entry.rank}</span>}
-              </div>
-              <div className="col-span-5 font-bold text-zinc-200 group-hover:text-cyan-400 transition-colors">
-                {entry.name}
-              </div>
-              <div className="col-span-3 text-sm text-zinc-400">
-                {entry.tier}
-              </div>
-              <div className="col-span-2 text-right font-mono text-cyan-400">
-                {entry.score.toLocaleString()}
-              </div>
-            </motion.div>
-          ))}
+          {loading ? (
+            <div className="p-8 text-center text-zinc-500">Loading rankings...</div>
+          ) : leaderboard.length === 0 ? (
+            <div className="p-8 text-center text-zinc-500">No rankings available yet.</div>
+          ) : (
+            leaderboard.map((entry, idx) => {
+              const rank = idx + 1;
+              return (
+                <motion.div
+                  key={entry.username}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 * idx }}
+                  className="grid grid-cols-12 gap-4 p-6 items-center hover:bg-white/5 transition-colors group"
+                >
+                  <div className="col-span-2 flex justify-center">
+                    {rank === 1 ? <Medal className="text-amber-400" size={24} /> :
+                     rank === 2 ? <Medal className="text-zinc-300" size={24} /> :
+                     rank === 3 ? <Medal className="text-amber-700" size={24} /> :
+                     <span className="text-zinc-500 font-mono text-lg">{rank}</span>}
+                  </div>
+                  <div className="col-span-5 font-bold text-zinc-200 group-hover:text-cyan-400 transition-colors">
+                    {entry.username}
+                  </div>
+                  <div className="col-span-3 text-sm text-zinc-400">
+                    {entry.rank}
+                  </div>
+                  <div className="col-span-2 text-right font-mono text-cyan-400">
+                    {entry.totalXP.toLocaleString()}
+                  </div>
+                </motion.div>
+              );
+            })
+          )}
         </div>
       </motion.div>
     </div>

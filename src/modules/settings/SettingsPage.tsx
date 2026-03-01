@@ -9,9 +9,7 @@ export function SettingsPage() {
   const { 
     musicEnabled, setMusicEnabled, musicVolume, setMusicVolume,
     voiceEnabled, setVoiceEnabled, voiceVolume, setVoiceVolume,
-    voiceInputEnabled, setVoiceInputEnabled,
-    theme, setTheme,
-    oracleHintsEnabled, setOracleHintsEnabled
+    theme, setTheme
   } = useGameStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,12 +40,6 @@ export function SettingsPage() {
     const vol = parseFloat(e.target.value);
     setVoiceVolume(vol);
     globalVoice.volume = vol;
-  };
-
-  const handleVoiceInputToggle = () => {
-    const newState = !voiceInputEnabled;
-    setVoiceInputEnabled(newState);
-    globalVoice.isInputEnabled = newState;
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,24 +169,6 @@ export function SettingsPage() {
                 </div>
               </div>
             </div>
-
-            <div className="pt-6 border-t border-white/5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 text-zinc-300">
-                  <Ear size={20} className="text-emerald-400" />
-                  <div>
-                    <span className="font-medium block">Voice Input</span>
-                    <span className="text-xs text-zinc-500">Enable microphone for Mind Duel</span>
-                  </div>
-                </div>
-                <button 
-                  onClick={handleVoiceInputToggle}
-                  className={`w-14 h-7 rounded-full transition-colors relative ${voiceInputEnabled ? 'bg-emerald-500' : 'bg-zinc-700'}`}
-                >
-                  <div className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white transition-transform ${voiceInputEnabled ? 'translate-x-7' : 'translate-x-0'}`} />
-                </button>
-              </div>
-            </div>
           </div>
         </motion.div>
 
@@ -217,6 +191,7 @@ export function SettingsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
                   { id: 'executive-dark', name: 'Executive Dark', color: 'bg-zinc-950' },
+                  { id: 'executive-light', name: 'Executive Light', color: 'bg-zinc-100' },
                   { id: 'cyber-neon', name: 'Cyber Neon', color: 'bg-black' },
                   { id: 'deep-ocean', name: 'Deep Ocean', color: 'bg-slate-950' }
                 ].map((t) => (
@@ -229,24 +204,6 @@ export function SettingsPage() {
                     <span className={`text-sm font-medium ${theme === t.id ? 'text-amber-400' : 'text-zinc-400'}`}>{t.name}</span>
                   </button>
                 ))}
-              </div>
-            </div>
-
-            <div className="space-y-4 md:border-l md:border-white/5 md:pl-8">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 text-zinc-300">
-                  <BrainCircuit size={20} className="text-rose-400" />
-                  <div>
-                    <span className="font-medium block">Oracle Post-Game Analysis</span>
-                    <span className="text-xs text-zinc-500">AI-driven feedback after matches</span>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setOracleHintsEnabled(!oracleHintsEnabled)}
-                  className={`w-14 h-7 rounded-full transition-colors relative ${oracleHintsEnabled ? 'bg-rose-500' : 'bg-zinc-700'}`}
-                >
-                  <div className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white transition-transform ${oracleHintsEnabled ? 'translate-x-7' : 'translate-x-0'}`} />
-                </button>
               </div>
             </div>
           </div>

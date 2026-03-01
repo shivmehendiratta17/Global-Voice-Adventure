@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Rocket, Mic, Globe, ShieldCheck } from 'lucide-react';
 import { useGameStore } from '../store/useGameStore';
 
-const CURRENT_VERSION = 'v2.0.0';
+const CURRENT_VERSION = 'v1.5.0';
 
 export function UpdateModal() {
   const { user } = useGameStore();
@@ -62,9 +62,9 @@ export function UpdateModal() {
               {/* Developer Welcome */}
               <div className="bg-cyan-950/30 border border-cyan-500/20 rounded-2xl p-6 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500"></div>
-                <h3 className="text-lg font-bold text-white mb-2">A Message from the Architect</h3>
+                <h3 className="text-lg font-bold text-white mb-2">A Message from Developer Shiv</h3>
                 <p className="text-cyan-100 leading-relaxed italic">
-                  "Welcome to the next evolution of Global Voice Adventure. We've completely rebuilt the cognitive engine to provide a more immersive, responsive, and intelligent experience. Your feedback has been instrumental in shaping this update. Prepare for a new level of strategic engagement."
+                  "Welcome to Version 1.5! We've packed this update with over 200+ levels, 5+ unique games, the new GV Sign up, a real-time leaderboard, and absolutely crazy fun you can have. Get ready to test your cognitive limits like never before!"
                 </p>
                 <p className="text-cyan-400 font-mono mt-4 text-sm">— Shiv, Lead Developer</p>
               </div>
@@ -82,9 +82,9 @@ export function UpdateModal() {
                       <Mic className="text-violet-400" size={24} />
                     </div>
                     <div>
-                      <h4 className="text-white font-bold mb-1">Global Voice Protocol & Talk to AI</h4>
+                      <h4 className="text-white font-bold mb-1">200+ Levels & 5+ Games</h4>
                       <p className="text-zinc-400 text-sm leading-relaxed">
-                        A centralized, highly reliable voice system. Experience seamless AI voice output and new voice recognition capabilities. Talk directly to the AI in Mind Duel!
+                        Dive into an expanded Arena featuring over 200 challenging levels across 5+ distinct cognitive games. Endless crazy fun awaits!
                       </p>
                     </div>
                   </div>
@@ -94,9 +94,9 @@ export function UpdateModal() {
                       <Globe className="text-amber-400" size={24} />
                     </div>
                     <div>
-                      <h4 className="text-white font-bold mb-1">Dynamic Theming & Custom Music</h4>
+                      <h4 className="text-white font-bold mb-1">New GV Sign Up</h4>
                       <p className="text-zinc-400 text-sm leading-relaxed">
-                        Personalize your interface with new global themes (Executive Dark, Cyber Neon, Deep Ocean) and upload your own custom background music in Settings.
+                        Register for the Global Voice Competition directly from the app. Experience our stunning 3D interactive sign-up page!
                       </p>
                     </div>
                   </div>
@@ -106,9 +106,9 @@ export function UpdateModal() {
                       <Rocket className="text-cyan-400" size={24} />
                     </div>
                     <div>
-                      <h4 className="text-white font-bold mb-1">Over 5 Game Modes & New Stats</h4>
+                      <h4 className="text-white font-bold mb-1">Real-Time Leaderboard</h4>
                       <p className="text-zinc-400 text-sm leading-relaxed">
-                        Explore an expanded Arena with multiple cognitive challenges. Track your progress with new detailed stats and a revamped ranking style. Read the rules of each game directly within the module.
+                        Compete globally and watch your rank climb in real-time. Track your progress and dominate the cognitive arena.
                       </p>
                     </div>
                   </div>

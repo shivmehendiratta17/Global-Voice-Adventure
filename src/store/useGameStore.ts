@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { UserProfile as FirebaseUserProfile, saveProgress, getRankFromXP } from '../lib/firebase';
+import { UserProfile as FirebaseUserProfile, getRankFromXP, submitScore, unlockAchievementApi } from '../lib/api';
 
 export interface UserProfile extends FirebaseUserProfile {
   id: string; // Keep an ID for frontend convenience
@@ -20,18 +20,14 @@ interface GameState {
   musicVolume: number;
   voiceEnabled: boolean;
   voiceVolume: number;
-  voiceInputEnabled: boolean;
   theme: string;
-  oracleHintsEnabled: boolean;
   setUser: (user: FirebaseUserProfile | null) => void;
   logout: () => void;
   setMusicEnabled: (enabled: boolean) => void;
   setMusicVolume: (volume: number) => void;
   setVoiceEnabled: (enabled: boolean) => void;
   setVoiceVolume: (volume: number) => void;
-  setVoiceInputEnabled: (enabled: boolean) => void;
   setTheme: (theme: string) => void;
-  setOracleHintsEnabled: (enabled: boolean) => void;
   updateStats: (gameId: string, score: number, metrics: any) => void;
   unlockAchievement: (achievementId: string) => void;
 }
@@ -44,9 +40,7 @@ export const useGameStore = create<GameState>()(
       musicVolume: 0.5,
       voiceEnabled: true,
       voiceVolume: 0.8,
-      voiceInputEnabled: false,
       theme: 'executive-dark',
-      oracleHintsEnabled: true,
       setUser: (fbUser) => set({
         user: fbUser ? {
           ...fbUser,
@@ -67,13 +61,11 @@ export const useGameStore = create<GameState>()(
       setMusicVolume: (volume) => set({ musicVolume: volume }),
       setVoiceEnabled: (enabled) => set({ voiceEnabled: enabled }),
       setVoiceVolume: (volume) => set({ voiceVolume: volume }),
-      setVoiceInputEnabled: (enabled) => set({ voiceInputEnabled: enabled }),
       setTheme: (theme) => set({ theme }),
-      setOracleHintsEnabled: (enabled) => set({ oracleHintsEnabled: enabled }),
       updateStats: (gameId, score, metrics) => set((state) => {
         if (!state.user) return state;
         
-        const newXp = (state.user.totalXP || 0) + score;
+        const newXp = Math.max(0, (state.user.totalXP || 0) + score);
         const newRank = getRankFromXP(newXp);
         
         // 7 minutes cooldown
@@ -91,7 +83,7 @@ export const useGameStore = create<GameState>()(
         };
 
         // Fire and forget to backend
-        saveProgress(state.user.username, updatedFbData);
+        submitScore(state.user.username, gameId, score, metrics).catch(console.error);
 
         return {
           user: {
@@ -119,7 +111,7 @@ export const useGameStore = create<GameState>()(
         const newAchievements = [...currentAchievements, achievementId];
         
         // Fire and forget to backend
-        saveProgress(state.user.username, { achievements: newAchievements });
+        unlockAchievementApi(state.user.username, achievementId).catch(console.error);
 
         // We can dispatch a custom event to show a toast
         window.dispatchEvent(new CustomEvent('achievementUnlocked', { detail: achievementId }));

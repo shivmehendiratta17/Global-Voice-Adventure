@@ -51,6 +51,16 @@
   --theme-border: rgba(59, 130, 246, 0.2);
 }
 
+.theme-executive-light {
+  --theme-bg: #f4f4f5; /* zinc-100 */
+  --theme-text: #09090b; /* zinc-950 */
+  --theme-primary: #0891b2; /* cyan-600 */
+  --theme-secondary: #1d4ed8; /* blue-700 */
+  --theme-accent: #d97706; /* amber-600 */
+  --theme-panel: rgba(255, 255, 255, 0.8);
+  --theme-border: rgba(0, 0, 0, 0.1);
+}
+
 body {
   background-color: var(--theme-bg);
   color: var(--theme-text);

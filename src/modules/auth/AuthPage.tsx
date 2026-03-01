@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthScreen } from '../../components/AuthScreen';
 import { useGameStore } from '../../store/useGameStore';
-import { UserProfile } from '../../lib/firebase';
+import { UserProfile } from '../../lib/api';
 
 export function AuthPage() {
   const navigate = useNavigate();

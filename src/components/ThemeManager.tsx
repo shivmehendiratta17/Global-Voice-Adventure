@@ -7,7 +7,7 @@ export function ThemeManager() {
   useEffect(() => {
     const root = document.documentElement;
     // Remove existing theme classes
-    root.classList.remove('theme-executive-dark', 'theme-cyber-neon', 'theme-deep-ocean');
+    root.classList.remove('theme-executive-dark', 'theme-cyber-neon', 'theme-deep-ocean', 'theme-executive-light');
     // Add new theme class
     root.classList.add(`theme-${theme}`);
   }, [theme]);

@@ -1,21 +1,30 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ParticleSystem } from '../components/ParticleSystem';
-import { Trophy, User, Home, Brain, Shield, Zap, Target, LogIn, LogOut, Settings } from 'lucide-react';
+import { Trophy, User, Home, Brain, Shield, Zap, Target, LogIn, LogOut, Settings, MessageSquare, Globe, Menu, X } from 'lucide-react';
 import { useGameStore } from '../store/useGameStore';
 import { AchievementToast } from '../components/AchievementToast';
 import { UpdateModal } from '../components/UpdateModal';
+import { FeedbackPopup } from '../components/FeedbackPopup';
 import { audioManager } from '../lib/audioManager';
 import { globalVoice } from '../lib/globalVoiceProtocol';
 
 export function MainLayout() {
-  const { user, logout, musicEnabled, musicVolume, voiceEnabled, voiceVolume, voiceInputEnabled } = useGameStore();
+  const { user, logout, musicEnabled, musicVolume, voiceEnabled, voiceVolume } = useGameStore();
+
+  const [showFeedbackPopup, setShowFeedbackPopup] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleShowFeedback = () => setShowFeedbackPopup(true);
+    window.addEventListener('showFeedbackPopup', handleShowFeedback);
+    return () => window.removeEventListener('showFeedbackPopup', handleShowFeedback);
+  }, []);
 
   React.useEffect(() => {
     globalVoice.isVoiceEnabled = voiceEnabled;
     globalVoice.volume = voiceVolume;
-    globalVoice.isInputEnabled = voiceInputEnabled;
     
     audioManager.setMusicVolume(musicVolume);
     if (musicEnabled) {
@@ -27,7 +36,7 @@ export function MainLayout() {
     return () => {
       audioManager.stopMusic();
     };
-  }, [voiceEnabled, voiceVolume, voiceInputEnabled, musicEnabled, musicVolume]);
+  }, [voiceEnabled, voiceVolume, musicEnabled, musicVolume]);
 
   const handleLogout = () => {
     audioManager.stopMusic();
@@ -70,6 +79,12 @@ export function MainLayout() {
               <Link to="/settings" className="text-zinc-400 hover:text-cyan-400 font-medium transition-colors flex items-center gap-2">
                 <Settings size={18} /> Settings
               </Link>
+              <Link to="/feedback" className="text-zinc-400 hover:text-cyan-400 font-medium transition-colors flex items-center gap-2">
+                <MessageSquare size={18} /> Feedback
+              </Link>
+              <Link to="/global-voice-signup" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors flex items-center gap-2">
+                <Globe size={18} /> GV Competition Sign Up
+              </Link>
               <button onClick={handleLogout} className="text-zinc-400 hover:text-rose-400 font-medium transition-colors flex items-center gap-2">
                 <LogOut size={18} /> Logout
               </button>
@@ -80,7 +95,59 @@ export function MainLayout() {
             </Link>
           )}
         </div>
+
+        {/* Mobile Menu Toggle */}
+        <button 
+          className="md:hidden text-zinc-400 hover:text-white"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
       </nav>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden bg-zinc-900/95 border-b border-white/10 overflow-hidden relative z-40"
+          >
+            <div className="flex flex-col p-4 gap-4">
+              <Link to="/arena" onClick={() => setIsMobileMenuOpen(false)} className="text-zinc-300 hover:text-cyan-400 font-medium flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
+                <Target size={18} /> Arena
+              </Link>
+              <Link to="/leaderboard" onClick={() => setIsMobileMenuOpen(false)} className="text-zinc-300 hover:text-cyan-400 font-medium flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
+                <Trophy size={18} /> Rankings
+              </Link>
+              {user ? (
+                <>
+                  <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="text-zinc-300 hover:text-cyan-400 font-medium flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
+                    <User size={18} /> Profile
+                  </Link>
+                  <Link to="/settings" onClick={() => setIsMobileMenuOpen(false)} className="text-zinc-300 hover:text-cyan-400 font-medium flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
+                    <Settings size={18} /> Settings
+                  </Link>
+                  <Link to="/feedback" onClick={() => setIsMobileMenuOpen(false)} className="text-zinc-300 hover:text-cyan-400 font-medium flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
+                    <MessageSquare size={18} /> Feedback
+                  </Link>
+                  <Link to="/global-voice-signup" onClick={() => setIsMobileMenuOpen(false)} className="text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-3 p-2 rounded-lg hover:bg-indigo-500/10">
+                    <Globe size={18} /> GV Competition Sign Up
+                  </Link>
+                  <button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="text-zinc-300 hover:text-rose-400 font-medium flex items-center gap-3 p-2 rounded-lg hover:bg-rose-500/10 text-left">
+                    <LogOut size={18} /> Logout
+                  </button>
+                </>
+              ) : (
+                <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)} className="text-zinc-300 hover:text-cyan-400 font-medium flex items-center gap-3 p-2 rounded-lg hover:bg-white/5">
+                  <LogIn size={18} /> Login
+                </Link>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <main className="relative z-10 flex-1 flex flex-col">
@@ -97,6 +164,7 @@ export function MainLayout() {
 
       <AchievementToast />
       <UpdateModal />
+      <FeedbackPopup isOpen={showFeedbackPopup} onClose={() => setShowFeedbackPopup(false)} />
     </div>
   );
 }

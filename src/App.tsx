@@ -13,10 +13,11 @@ const SignalRecallGame = lazy(() => import('./modules/signalRecall/SignalRecallG
 const MindDuelGame = lazy(() => import('./modules/mindDuel/MindDuelGame').then(m => ({ default: m.MindDuelGame })));
 const CrisisCommandGame = lazy(() => import('./modules/crisisCommand/CrisisCommandGame').then(m => ({ default: m.CrisisCommandGame })));
 const SignalVsNoiseGame = lazy(() => import('./modules/signalVsNoise/SignalVsNoiseGame').then(m => ({ default: m.SignalVsNoiseGame })));
-const GlobalCompetition = lazy(() => import('./modules/competition/GlobalCompetition').then(m => ({ default: m.GlobalCompetition })));
+const GlobalVoiceSignUp = lazy(() => import('./modules/competition/GlobalVoiceSignUp').then(m => ({ default: m.GlobalVoiceSignUp })));
 const ProfilePage = lazy(() => import('./modules/profile/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const LeaderboardPage = lazy(() => import('./modules/leaderboard/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })));
 const SettingsPage = lazy(() => import('./modules/settings/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const FeedbackPage = lazy(() => import('./modules/settings/FeedbackPage').then(m => ({ default: m.FeedbackPage })));
 
 // Protected Route Wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -42,9 +43,10 @@ function App() {
             <Route path="arena/mind-duel" element={<ProtectedRoute><MindDuelGame /></ProtectedRoute>} />
             <Route path="arena/crisis-command" element={<ProtectedRoute><CrisisCommandGame /></ProtectedRoute>} />
             <Route path="arena/signal-vs-noise" element={<ProtectedRoute><SignalVsNoiseGame /></ProtectedRoute>} />
-            <Route path="arena/global-competition" element={<ProtectedRoute><GlobalCompetition /></ProtectedRoute>} />
+            <Route path="global-voice-signup" element={<GlobalVoiceSignUp />} />
             <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+            <Route path="feedback" element={<ProtectedRoute><FeedbackPage /></ProtectedRoute>} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
           </Route>
         </Routes>

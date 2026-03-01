@@ -7,8 +7,8 @@ export function ArenaPage() {
   const [timeLeft, setTimeLeft] = useState('');
 
   useEffect(() => {
-    // Target date: March 31, 2026 (or next year if passed)
-    const targetDate = new Date('2026-03-31T00:00:00Z').getTime();
+    // Target date: March 16, 2026 (or next year if passed)
+    const targetDate = new Date('2026-03-16T00:00:00Z').getTime();
 
     const updateTimer = () => {
       const now = new Date().getTime();
@@ -38,15 +38,15 @@ export function ArenaPage() {
     { id: 'crisis-command', title: 'Crisis Command', desc: 'Global Strategy Simulation', icon: Shield, color: 'from-emerald-500 to-teal-500', path: '/arena/crisis-command', locked: false },
     { id: 'signal-vs-noise', title: 'Signal vs Noise', desc: 'Information Intelligence', icon: Activity, color: 'from-violet-500 to-purple-500', path: '/arena/signal-vs-noise', locked: false },
     { 
-      id: 'global-competition', 
-      title: 'Global Competition', 
-      desc: 'March 31 Tournament', 
+      id: 'global-competition-signup', 
+      title: 'GV Competition Sign Up', 
+      desc: 'March 16 Tournament Registration', 
       icon: Globe, 
-      color: 'from-fuchsia-500 to-pink-500', 
-      path: '/arena/global-competition', 
-      locked: timeLeft !== 'OPEN',
+      color: 'from-indigo-500 to-blue-500', 
+      path: '/global-voice-signup', 
+      locked: false,
       special: true
-    },
+    }
   ];
 
   return (
@@ -78,34 +78,34 @@ export function ArenaPage() {
                 <div className={`p-4 rounded-2xl bg-gradient-to-br ${game.color} bg-opacity-10 shadow-inner relative`}>
                   <game.icon className="text-white relative z-10" size={32} />
                   {game.special && (
-                    <div className="absolute inset-0 bg-fuchsia-500/20 blur-xl rounded-full animate-pulse"></div>
+                    <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse"></div>
                   )}
                 </div>
                 {game.locked ? (
                   <div className="flex items-center gap-2 bg-zinc-800/80 px-3 py-1.5 rounded-full border border-white/5">
                     {game.special ? (
                       <>
-                        <Clock className="text-fuchsia-400" size={14} />
-                        <span className="text-xs font-mono text-fuchsia-400">{timeLeft}</span>
+                        <Clock className="text-indigo-400" size={14} />
+                        <span className="text-xs font-mono text-indigo-400">{timeLeft}</span>
                       </>
                     ) : (
                       <Lock className="text-zinc-500" size={18} />
                     )}
                   </div>
                 ) : game.special && (
-                  <div className="flex items-center gap-2 bg-fuchsia-500/20 px-3 py-1.5 rounded-full border border-fuchsia-500/30">
-                    <span className="text-xs font-bold text-fuchsia-400 uppercase tracking-wider animate-pulse">Live Now</span>
+                  <div className="flex items-center gap-2 bg-indigo-500/20 px-3 py-1.5 rounded-full border border-indigo-500/30">
+                    <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider animate-pulse">Live Now</span>
                   </div>
                 )}
               </div>
 
-              <h2 className={`text-2xl font-bold mb-2 ${game.special ? 'text-transparent bg-clip-text bg-gradient-to-r from-white to-fuchsia-200' : 'text-white'}`}>
+              <h2 className={`text-2xl font-bold mb-2 ${game.special ? 'text-transparent bg-clip-text bg-gradient-to-r from-white to-indigo-200' : 'text-white'}`}>
                 {game.title}
               </h2>
               <p className="text-zinc-400 font-light">{game.desc}</p>
 
               {!game.locked && (
-                <div className={`mt-8 flex items-center font-bold text-sm uppercase tracking-widest group-hover:translate-x-2 transition-transform ${game.special ? 'text-fuchsia-400' : 'text-cyan-400'}`}>
+                <div className={`mt-8 flex items-center font-bold text-sm uppercase tracking-widest group-hover:translate-x-2 transition-transform ${game.special ? 'text-indigo-400' : 'text-cyan-400'}`}>
                   Initiate Protocol &rarr;
                 </div>
               )}

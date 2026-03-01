@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { getLeaderboard, UserProfile } from '../lib/firebase';
+import { getLeaderboard, UserProfile } from '../lib/api';
 import { Trophy, ArrowLeft, Loader2, Medal } from 'lucide-react';
 import { clsx } from 'clsx';
 

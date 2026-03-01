@@ -22,12 +22,6 @@ export const ACHIEVEMENTS = {
     title: 'Flawless Recall',
     description: 'Perfect Signal Recall session',
     icon: 'Zap'
-  },
-  GLOBAL_ELITE: {
-    id: 'global_elite',
-    title: 'Global Elite',
-    description: 'Participate in a Global Competition',
-    icon: 'Globe'
   }
 };
 
@@ -55,8 +49,5 @@ export const AchievementService = {
       return ACHIEVEMENTS.FLAWLESS_RECALL.id;
     }
     return null;
-  },
-  checkGlobalCompetition: () => {
-    return ACHIEVEMENTS.GLOBAL_ELITE.id;
   }
 };
