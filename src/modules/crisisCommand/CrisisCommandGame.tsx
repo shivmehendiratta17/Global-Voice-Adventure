@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useGameStore } from '../../store/useGameStore';
 import { Shield, Globe, TrendingUp, Users, BookOpen, AlertTriangle, Clock, ArrowUp, ArrowDown } from 'lucide-react';
 import { RulesModal } from '../../components/RulesModal';
-import { generateCrisisScenario, CrisisScenario } from '../../data/crisisScenarios';
-import { AchievementService } from '../../services/achievementService';
+import { getCrisisState, playCrisisYear } from '../../lib/api';
+import { CrisisScenario, generateCrisisScenario } from '../../data/crisisScenarios';
 
 interface CrisisState {
   current_year: number;
@@ -36,8 +36,7 @@ export function CrisisCommandGame() {
   const fetchState = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/crisis/state?username=${user?.username}`);
-      const data = await res.json();
+      const data = await getCrisisState(user?.username || '');
       if (data.state) {
         setGameState(data.state);
         checkLockout(data.state);
@@ -97,19 +96,7 @@ export function CrisisCommandGame() {
     });
 
     try {
-      const res = await fetch('/api/crisis/play-year', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user.username, impact })
-      });
-      const data = await res.json();
-      
-      if (data.error === 'Locked out') {
-        setIsLocked(true);
-        updateCountdown(new Date(data.lockout_until).getTime());
-        setStage('intro');
-        return;
-      }
+      const data = await playCrisisYear(user.username, impact);
 
       if (data.state) {
         // Wait for animation
@@ -132,8 +119,14 @@ export function CrisisCommandGame() {
           }
         }, 2000);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to play year", e);
+      if (e.message === 'Locked out') {
+        setIsLocked(true);
+        // We don't have the exact lockout time from the error, so we'll just fetch state again
+        fetchState();
+        setStage('intro');
+      }
       setSelectedOption(null);
       setImpactDeltas(null);
     }

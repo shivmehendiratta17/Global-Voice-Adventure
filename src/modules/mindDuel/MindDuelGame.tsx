@@ -6,6 +6,7 @@ import { globalVoice } from '../../lib/globalVoiceProtocol';
 import { GameEngine } from '../../services/gameEngine';
 import { DuelQuestionV2 } from '../../data/duelQuestionsV2';
 import { AchievementService } from '../../services/achievementService';
+import { checkWagerLimit, startWagerRound, saveProgress } from '../../lib/api';
 
 export function MindDuelGame() {
   const { user, updateStats, unlockAchievement } = useGameStore();
@@ -32,15 +33,10 @@ export function MindDuelGame() {
   const checkPlayLimit = async () => {
     if (!user) return;
     try {
-      const res = await fetch('/api/wager/check-limit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user.username })
-      });
-      const data = await res.json();
+      const data = await checkWagerLimit(user.username, 'default');
       setPlayAllowed(data.allowed);
       if (!data.allowed) {
-        setTimeRemaining(data.timeRemaining);
+        setTimeRemaining(data.timeRemaining || 0);
       }
     } catch (error) {
       console.error("Failed to check limit", error);
@@ -94,18 +90,13 @@ export function MindDuelGame() {
     if (!user) return;
     
     try {
-      const res = await fetch('/api/wager/start-round', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user.username })
-      });
-      if (!res.ok) {
+      await startWagerRound(user.username, 'default');
+    } catch (error: any) {
+      console.error("Failed to start round", error);
+      if (error.message === 'Play limit reached') {
         checkPlayLimit();
         setStage('intro');
-        return;
       }
-    } catch (error) {
-      console.error("Failed to start round", error);
       return;
     }
 
@@ -194,14 +185,7 @@ export function MindDuelGame() {
     if (passed && selectedLevel === highestLevelUnlocked && selectedLevel < 100) {
       if (user) {
         try {
-          await fetch('/api/progress', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              username: user.username, 
-              updates: { highestDuelLevelUnlocked: selectedLevel + 1 } 
-            })
-          });
+          await saveProgress(user.username, { highestDuelLevelUnlocked: selectedLevel + 1 });
           useGameStore.setState((state) => ({
             user: state.user ? { ...state.user, highestDuelLevelUnlocked: selectedLevel + 1 } : null
           }));

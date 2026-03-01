@@ -6,6 +6,7 @@ import { RulesModal } from '../../components/RulesModal';
 import { GameEngine } from '../../services/gameEngine';
 import { SignalItemV2 } from '../../data/signalItemsV2';
 import { AchievementService } from '../../services/achievementService';
+import { checkWagerLimit, saveProgress, startWagerRound } from '../../lib/api';
 
 export function SignalVsNoiseGame() {
   const { user, updateStats, unlockAchievement } = useGameStore();
@@ -32,15 +33,10 @@ export function SignalVsNoiseGame() {
   const checkPlayLimit = async () => {
     if (!user) return;
     try {
-      const res = await fetch('/api/wager/check-limit?game=signal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user.username })
-      });
-      const data = await res.json();
+      const data = await checkWagerLimit(user.username, 'signal');
       setPlayAllowed(data.allowed);
       if (!data.allowed) {
-        setTimeRemaining(data.timeRemaining);
+        setTimeRemaining(data.timeRemaining || 0);
       }
     } catch (error) {
       console.error("Failed to check limit", error);
@@ -79,18 +75,13 @@ export function SignalVsNoiseGame() {
     if (!user) return;
     
     try {
-      const res = await fetch('/api/wager/start-round?game=signal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user.username })
-      });
-      if (!res.ok) {
+      await startWagerRound(user.username, 'signal');
+    } catch (error: any) {
+      console.error("Failed to start round", error);
+      if (error.message === 'Play limit reached') {
         checkPlayLimit();
         setStage('intro');
-        return;
       }
-    } catch (error) {
-      console.error("Failed to start round", error);
       return;
     }
 
@@ -138,14 +129,7 @@ export function SignalVsNoiseGame() {
     if (passed && selectedLevel === highestLevelUnlocked && selectedLevel < 49) {
       if (user) {
         try {
-          await fetch('/api/progress', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              username: user.username, 
-              updates: { highestSignalLevelUnlocked: selectedLevel + 1 } 
-            })
-          });
+          await saveProgress(user.username, { highestSignalLevelUnlocked: selectedLevel + 1 });
           useGameStore.setState((state) => ({
             user: state.user ? { ...state.user, highestSignalLevelUnlocked: selectedLevel + 1 } : null
           }));

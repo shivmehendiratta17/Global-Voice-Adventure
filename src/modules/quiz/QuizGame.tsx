@@ -4,6 +4,7 @@ import { useGameStore } from '../../store/useGameStore';
 import { Brain, Target, Clock, AlertTriangle, ChevronRight, CheckCircle2, XCircle, ShieldAlert, Coins, Lock, Unlock, ArrowRight } from 'lucide-react';
 import { GameEngine } from '../../services/gameEngine';
 import { WagerQuestion } from '../../data/wagerQuestions';
+import { checkWagerLimit, saveProgress, startWagerRound } from '../../lib/api';
 
 export function QuizGame() {
   const { user, updateStats } = useGameStore();
@@ -38,15 +39,10 @@ export function QuizGame() {
   const checkPlayLimit = async () => {
     if (!user) return;
     try {
-      const res = await fetch('/api/wager/check-limit?game=quiz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user.username })
-      });
-      const data = await res.json();
+      const data = await checkWagerLimit(user.username, 'quiz');
       setPlayAllowed(data.allowed);
       if (!data.allowed) {
-        setTimeRemaining(data.timeRemaining);
+        setTimeRemaining(data.timeRemaining || 0);
       }
     } catch (error) {
       console.error("Failed to check limit", error);
@@ -96,18 +92,13 @@ export function QuizGame() {
     
     // Record the play on backend
     try {
-      const res = await fetch('/api/wager/start-round?game=quiz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user.username })
-      });
-      if (!res.ok) {
+      await startWagerRound(user.username, 'quiz');
+    } catch (error: any) {
+      console.error("Failed to start round", error);
+      if (error.message === 'Play limit reached') {
         checkPlayLimit(); // Re-check if failed
         setStage('intro');
-        return;
       }
-    } catch (error) {
-      console.error("Failed to start round", error);
       return;
     }
 
@@ -186,14 +177,7 @@ export function QuizGame() {
     if (passed && selectedLevel === highestLevelUnlocked && selectedLevel < 25) {
       if (user) {
         try {
-          await fetch('/api/progress', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              username: user.username, 
-              updates: { highestRoundUnlocked: selectedLevel + 1, lastPlayedRound: selectedLevel + 1 } 
-            })
-          });
+          await saveProgress(user.username, { highestRoundUnlocked: selectedLevel + 1, lastPlayedRound: selectedLevel + 1 });
           useGameStore.setState((state) => ({
             user: state.user ? { ...state.user, highestRoundUnlocked: selectedLevel + 1, lastPlayedRound: selectedLevel + 1 } : null
           }));

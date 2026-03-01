@@ -4,6 +4,7 @@ import { useGameStore } from '../../store/useGameStore';
 import { Zap, Eye, BrainCircuit, BookOpen, AlertTriangle, ChevronRight, CheckCircle2, XCircle, ShieldAlert, Lock, Unlock, ArrowRight, Clock } from 'lucide-react';
 import { GameEngine } from '../../services/gameEngine';
 import { RecallPatternV2 } from '../../data/recallPatternsV2';
+import { checkWagerLimit, saveProgress, startWagerRound } from '../../lib/api';
 
 type QuestionType = 'exact' | 'reverse' | 'nth' | 'missing';
 
@@ -47,15 +48,10 @@ export function SignalRecallGame() {
   const checkPlayLimit = async () => {
     if (!user) return;
     try {
-      const res = await fetch('/api/wager/check-limit?game=recall', { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user.username })
-      });
-      const data = await res.json();
+      const data = await checkWagerLimit(user.username, 'recall');
       setPlayAllowed(data.allowed);
       if (!data.allowed) {
-        setTimeRemaining(data.timeRemaining);
+        setTimeRemaining(data.timeRemaining || 0);
       }
     } catch (error) {
       console.error("Failed to check limit", error);
@@ -169,18 +165,13 @@ export function SignalRecallGame() {
     if (!user) return;
     
     try {
-      const res = await fetch('/api/wager/start-round?game=recall', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user.username })
-      });
-      if (!res.ok) {
+      await startWagerRound(user.username, 'recall');
+    } catch (error: any) {
+      console.error("Failed to start round", error);
+      if (error.message === 'Play limit reached') {
         checkPlayLimit();
         setStage('intro');
-        return;
       }
-    } catch (error) {
-      console.error("Failed to start round", error);
       return;
     }
 
@@ -239,14 +230,7 @@ export function SignalRecallGame() {
     if (passed && selectedLevel === highestLevelUnlocked && selectedLevel < 25) {
       if (user) {
         try {
-          await fetch('/api/progress', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-              username: user.username, 
-              updates: { highestRecallLevelUnlocked: selectedLevel + 1 } 
-            })
-          });
+          await saveProgress(user.username, { highestRecallLevelUnlocked: selectedLevel + 1 });
           useGameStore.setState((state) => ({
             user: state.user ? { ...state.user, highestRecallLevelUnlocked: selectedLevel + 1 } : null
           }));
