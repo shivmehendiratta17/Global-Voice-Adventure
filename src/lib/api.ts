@@ -146,7 +146,7 @@ export async function getLeaderboard(): Promise<UserProfile[]> {
   return leaderboard;
 }
 
-export async function checkWagerLimit(username: string, game: string) {
+export async function checkWagerLimit(username: string, game: string): Promise<{ allowed: boolean, timeRemaining?: number }> {
   const playsRef = collection(db, 'round_plays');
   
   let limitCount = 3;
@@ -186,7 +186,7 @@ export async function checkWagerLimit(username: string, game: string) {
   return { allowed: true };
 }
 
-export async function startWagerRound(username: string, game: string) {
+export async function startWagerRound(username: string, game: string): Promise<{ success: boolean }> {
   const check = await checkWagerLimit(username, game);
   if (!check.allowed) {
     throw new Error('Play limit reached');
@@ -202,7 +202,7 @@ export async function startWagerRound(username: string, game: string) {
   return { success: true };
 }
 
-export async function getCrisisState(username: string) {
+export async function getCrisisState(username: string): Promise<{ state: any }> {
   const stateRef = doc(db, 'crisis_command_state', username);
   const stateSnap = await getDoc(stateRef);
 
@@ -235,7 +235,7 @@ export async function getCrisisState(username: string) {
   return { state };
 }
 
-export async function playCrisisYear(username: string, impact: any) {
+export async function playCrisisYear(username: string, impact: any): Promise<{ state: any }> {
   const stateRef = doc(db, 'crisis_command_state', username);
   const stateSnap = await getDoc(stateRef);
 
