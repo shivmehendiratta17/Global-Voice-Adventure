@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs, arrayUnion, where } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs, arrayUnion, where, onSnapshot } from 'firebase/firestore';
 
 export interface CategoryStats {
   [category: string]: {
@@ -133,17 +133,19 @@ export async function unlockAchievementApi(username: string, achievementId: stri
   });
 }
 
-export async function getLeaderboard(): Promise<UserProfile[]> {
+export function subscribeToLeaderboard(callback: (leaderboard: UserProfile[]) => void): () => void {
   const usersRef = collection(db, 'users');
   const q = query(usersRef, orderBy('totalXP', 'desc'), limit(20));
-  const querySnapshot = await getDocs(q);
   
-  const leaderboard: UserProfile[] = [];
-  querySnapshot.forEach((doc) => {
-    leaderboard.push(doc.data() as UserProfile);
+  const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const leaderboard: UserProfile[] = [];
+    querySnapshot.forEach((doc) => {
+      leaderboard.push(doc.data() as UserProfile);
+    });
+    callback(leaderboard);
   });
   
-  return leaderboard;
+  return unsubscribe;
 }
 
 export async function checkWagerLimit(username: string, game: string): Promise<{ allowed: boolean, timeRemaining?: number }> {

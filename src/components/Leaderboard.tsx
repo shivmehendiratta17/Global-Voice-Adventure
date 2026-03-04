@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { getLeaderboard, UserProfile } from '../lib/api';
+import { subscribeToLeaderboard, UserProfile } from '../lib/api';
 import { Trophy, ArrowLeft, Loader2, Medal } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -14,12 +14,12 @@ export function Leaderboard({ onBack }: LeaderboardProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchLeaderboard() {
-      const data = await getLeaderboard();
+    const unsubscribe = subscribeToLeaderboard((data) => {
       setEntries(data);
       setLoading(false);
-    }
-    fetchLeaderboard();
+    });
+    
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -90,7 +90,7 @@ export function Leaderboard({ onBack }: LeaderboardProps) {
                   {entry.username}
                 </div>
                 <div className="col-span-2 md:col-span-2 text-center text-zinc-400 font-mono text-sm">
-                  {entry.highestRound}
+                  {entry.highestRoundUnlocked}
                 </div>
                 <div className="col-span-3 text-right font-mono font-bold text-amber-400 text-sm md:text-base">
                   {entry.totalXP.toLocaleString()}

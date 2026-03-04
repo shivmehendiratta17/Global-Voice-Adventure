@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Trophy, Medal, Star } from 'lucide-react';
-import { getLeaderboard } from '../../lib/api';
+import { subscribeToLeaderboard } from '../../lib/api';
 
 interface LeaderboardEntry {
   username: string;
@@ -14,17 +14,12 @@ export function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        const data = await getLeaderboard();
-        setLeaderboard(data);
-      } catch (error) {
-        console.error("Failed to fetch leaderboard", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLeaderboard();
+    const unsubscribe = subscribeToLeaderboard((data) => {
+      setLeaderboard(data);
+      setLoading(false);
+    });
+    
+    return () => unsubscribe();
   }, []);
 
   return (
