@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useGameStore } from '../../store/useGameStore';
 import { Shield, Globe, TrendingUp, Users, BookOpen, AlertTriangle, Clock, ArrowUp, ArrowDown } from 'lucide-react';
 import { RulesModal } from '../../components/RulesModal';
-import { getCrisisState, playCrisisYear } from '../../lib/api';
+import { getCrisisState, playCrisisYear, checkWagerLimit, startWagerRound } from '../../lib/api';
 import { CrisisScenario, generateCrisisScenario } from '../../data/crisisScenarios';
 
 interface CrisisState {
@@ -28,9 +28,50 @@ export function CrisisCommandGame() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [impactDeltas, setImpactDeltas] = useState<{s: number, e: number, t: number, r: number} | null>(null);
 
+  const [isCheckingLimit, setIsCheckingLimit] = useState(true);
+  const [playAllowed, setPlayAllowed] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+
   useEffect(() => {
     if (!user) return;
     fetchState();
+  }, [user]);
+
+  const checkPlayLimit = async () => {
+    if (!user) return;
+    try {
+      const data = await checkWagerLimit(user.username, 'crisis');
+      setPlayAllowed(data.allowed);
+      if (!data.allowed) {
+        setTimeRemaining(data.timeRemaining || 0);
+      }
+    } catch (error) {
+      console.error("Failed to check limit", error);
+    } finally {
+      setIsCheckingLimit(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!playAllowed) {
+      const interval = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev <= 1000) {
+            setPlayAllowed(true);
+            return 0;
+          }
+          return prev - 1000;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [playAllowed]);
+
+  // Initial check on mount to ensure timer is accurate even after reload
+  useEffect(() => {
+    if (user) {
+      checkPlayLimit();
+    }
   }, [user]);
 
   const fetchState = async () => {
@@ -78,8 +119,20 @@ export function CrisisCommandGame() {
     return () => clearInterval(interval);
   };
 
-  const startSimulation = () => {
-    if (!gameState) return;
+  const startSimulation = async () => {
+    if (!gameState || !user) return;
+    
+    try {
+      await startWagerRound(user.username, 'crisis');
+    } catch (error: any) {
+      console.error("Failed to start round", error);
+      if (error.message === 'Play limit reached') {
+        checkPlayLimit();
+        setStage('intro');
+      }
+      return;
+    }
+
     setCurrentScenario(generateCrisisScenario(gameState.current_year));
     setStage('simulation');
   };
@@ -206,6 +259,22 @@ export function CrisisCommandGame() {
                 <h3 className="text-2xl font-bold text-white mb-2 relative z-10">Simulation Locked</h3>
                 <p className="text-zinc-400 mb-6 relative z-10">You are allowed to play other games till then.</p>
                 <div className="text-4xl font-mono text-emerald-400 font-bold tracking-widest relative z-10">{cooldownRemaining}</div>
+              </div>
+            ) : isCheckingLimit ? (
+              <div className="flex items-center gap-3 text-zinc-500">
+                <div className="w-5 h-5 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin"></div>
+                <span>Verifying access...</span>
+              </div>
+            ) : !playAllowed ? (
+              <div className="p-6 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-start gap-4">
+                <AlertTriangle className="text-rose-500 shrink-0 mt-1" size={24} />
+                <div>
+                  <h3 className="text-lg font-medium text-rose-100 mb-1">Play Limit Reached</h3>
+                  <p className="text-rose-200/70 mb-3">To ensure fair play and prevent burnout, you can only play a limited number of sessions. You are allowed to play other games till then!</p>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-rose-500/20 rounded-lg text-rose-300 font-mono text-sm">
+                    <Clock size={14} /> Try again in {Math.floor(timeRemaining / 60000)}:{(Math.floor((timeRemaining % 60000) / 1000)).toString().padStart(2, '0')}
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="flex gap-4">

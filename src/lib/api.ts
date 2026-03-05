@@ -87,8 +87,12 @@ export async function loginAccount(username: string, keyHash: string): Promise<U
 }
 
 export async function saveProgress(username: string, updates: Partial<UserProfile>) {
-  const userRef = doc(db, 'users', username);
-  await updateDoc(userRef, updates);
+  try {
+    const userRef = doc(db, 'users', username);
+    await updateDoc(userRef, updates);
+  } catch (error) {
+    console.error("Error saving progress:", error);
+  }
 }
 
 export async function submitScore(username: string, gameId: string, score: number, metrics: any) {
@@ -163,29 +167,41 @@ export async function checkWagerLimit(username: string, game: string): Promise<{
   } else if (game === 'signal') {
     limitCount = 10;
     limitTimeMs = 30 * 60 * 1000;
+  } else if (game === 'crisis') {
+    limitCount = 10;
+    limitTimeMs = 24 * 60 * 60 * 1000; // 10 years per day
   }
 
   const limitTimeStr = new Date(Date.now() - limitTimeMs).toISOString();
 
   const q = query(
     playsRef, 
-    where('username', '==', username),
-    where('game', '==', game),
-    where('timestamp', '>', limitTimeStr),
-    orderBy('timestamp', 'asc')
+    where('username', '==', username)
   );
 
-  const querySnapshot = await getDocs(q);
-  
-  if (querySnapshot.size >= limitCount) {
-    const oldestPlay = querySnapshot.docs[0].data();
-    const oldestMs = new Date(oldestPlay.timestamp).getTime();
-    const nowMs = Date.now();
-    const timeToWait = (oldestMs + limitTimeMs) - nowMs;
-    return { allowed: false, timeRemaining: Math.max(0, timeToWait) };
-  }
+  try {
+    const querySnapshot = await getDocs(q);
+    
+    // Filter and sort in memory to avoid composite index requirements
+    const recentPlays = querySnapshot.docs
+      .map(doc => doc.data())
+      .filter(play => play.game === game && play.timestamp > limitTimeStr)
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    
+    if (recentPlays.length >= limitCount) {
+      const oldestPlay = recentPlays[0];
+      const oldestMs = new Date(oldestPlay.timestamp).getTime();
+      const nowMs = Date.now();
+      const timeToWait = (oldestMs + limitTimeMs) - nowMs;
+      return { allowed: false, timeRemaining: Math.max(0, timeToWait) };
+    }
 
-  return { allowed: true };
+    return { allowed: true };
+  } catch (error) {
+    console.error("Error checking wager limit:", error);
+    // Fail open if there's an error (e.g. permission denied or index missing)
+    return { allowed: true };
+  }
 }
 
 export async function startWagerRound(username: string, game: string): Promise<{ success: boolean }> {
@@ -194,22 +210,63 @@ export async function startWagerRound(username: string, game: string): Promise<{
     throw new Error('Play limit reached');
   }
 
-  const playRef = doc(collection(db, 'round_plays'));
-  await setDoc(playRef, {
-    username,
-    game,
-    timestamp: new Date().toISOString()
-  });
+  try {
+    const playRef = doc(collection(db, 'round_plays'));
+    await setDoc(playRef, {
+      username,
+      game,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("Error recording play:", error);
+  }
 
   return { success: true };
 }
 
 export async function getCrisisState(username: string): Promise<{ state: any }> {
-  const stateRef = doc(db, 'crisis_command_state', username);
-  const stateSnap = await getDoc(stateRef);
+  try {
+    const stateRef = doc(db, 'crisis_command_state', username);
+    const stateSnap = await getDoc(stateRef);
 
-  if (!stateSnap.exists()) {
-    const newState = {
+    if (!stateSnap.exists()) {
+      const newState = {
+        username,
+        current_year: 1,
+        years_played_current_batch: 0,
+        lockout_until: null,
+        stability: 50,
+        economy: 50,
+        trust: 50,
+        relations: 50
+      };
+      try {
+        await setDoc(stateRef, newState);
+      } catch (e) {
+        console.error("Error setting crisis state", e);
+      }
+      return { state: newState };
+    }
+
+    let state = stateSnap.data() as any;
+
+    if (state.lockout_until && new Date(state.lockout_until).getTime() <= Date.now()) {
+      try {
+        await updateDoc(stateRef, {
+          lockout_until: null,
+          years_played_current_batch: 0
+        });
+      } catch (e) {
+        console.error("Error updating crisis state", e);
+      }
+      state.lockout_until = null;
+      state.years_played_current_batch = 0;
+    }
+
+    return { state };
+  } catch (error) {
+    console.error("Error getting crisis state:", error);
+    return { state: {
       username,
       current_year: 1,
       years_played_current_batch: 0,
@@ -218,63 +275,57 @@ export async function getCrisisState(username: string): Promise<{ state: any }> 
       economy: 50,
       trust: 50,
       relations: 50
-    };
-    await setDoc(stateRef, newState);
-    return { state: newState };
+    }};
   }
-
-  let state = stateSnap.data() as any;
-
-  if (state.lockout_until && new Date(state.lockout_until).getTime() <= Date.now()) {
-    await updateDoc(stateRef, {
-      lockout_until: null,
-      years_played_current_batch: 0
-    });
-    state.lockout_until = null;
-    state.years_played_current_batch = 0;
-  }
-
-  return { state };
 }
 
 export async function playCrisisYear(username: string, impact: any): Promise<{ state: any }> {
-  const stateRef = doc(db, 'crisis_command_state', username);
-  const stateSnap = await getDoc(stateRef);
+  try {
+    const stateRef = doc(db, 'crisis_command_state', username);
+    const stateSnap = await getDoc(stateRef);
 
-  if (!stateSnap.exists()) {
-    throw new Error('State not found');
+    if (!stateSnap.exists()) {
+      throw new Error('State not found');
+    }
+
+    const state = stateSnap.data() as any;
+
+    if (state.lockout_until && new Date(state.lockout_until).getTime() > Date.now()) {
+      throw new Error('Locked out');
+    }
+
+    const newStability = Math.max(0, Math.min(100, state.stability + (impact.stability || 0)));
+    const newEconomy = Math.max(0, Math.min(100, state.economy + (impact.economy || 0)));
+    const newTrust = Math.max(0, Math.min(100, state.trust + (impact.trust || 0)));
+    const newRelations = Math.max(0, Math.min(100, state.relations + (impact.relations || 0)));
+    
+    const newYear = state.current_year + 1;
+    let newYearsPlayed = state.years_played_current_batch + 1;
+    let newLockout = null;
+
+    if (newYearsPlayed >= 10) {
+      newLockout = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    }
+
+    const updates = {
+      current_year: newYear,
+      years_played_current_batch: newYearsPlayed,
+      lockout_until: newLockout,
+      stability: newStability,
+      economy: newEconomy,
+      trust: newTrust,
+      relations: newRelations
+    };
+
+    try {
+      await updateDoc(stateRef, updates);
+    } catch (e) {
+      console.error("Error updating crisis year", e);
+    }
+
+    return { state: { ...state, ...updates } };
+  } catch (error) {
+    console.error("Error playing crisis year:", error);
+    throw error;
   }
-
-  const state = stateSnap.data() as any;
-
-  if (state.lockout_until && new Date(state.lockout_until).getTime() > Date.now()) {
-    throw new Error('Locked out');
-  }
-
-  const newStability = Math.max(0, Math.min(100, state.stability + (impact.stability || 0)));
-  const newEconomy = Math.max(0, Math.min(100, state.economy + (impact.economy || 0)));
-  const newTrust = Math.max(0, Math.min(100, state.trust + (impact.trust || 0)));
-  const newRelations = Math.max(0, Math.min(100, state.relations + (impact.relations || 0)));
-  
-  const newYear = state.current_year + 1;
-  let newYearsPlayed = state.years_played_current_batch + 1;
-  let newLockout = null;
-
-  if (newYearsPlayed >= 10) {
-    newLockout = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-  }
-
-  const updates = {
-    current_year: newYear,
-    years_played_current_batch: newYearsPlayed,
-    lockout_until: newLockout,
-    stability: newStability,
-    economy: newEconomy,
-    trust: newTrust,
-    relations: newRelations
-  };
-
-  await updateDoc(stateRef, updates);
-
-  return { state: { ...state, ...updates } };
 }
