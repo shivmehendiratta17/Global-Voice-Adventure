@@ -89,21 +89,23 @@ export async function loginAccount(username: string, keyHash: string): Promise<U
 export async function saveProgress(username: string, updates: Partial<UserProfile>) {
   try {
     const userRef = doc(db, 'users', username);
-    await updateDoc(userRef, updates);
+    await setDoc(userRef, updates, { merge: true });
   } catch (error) {
     console.error("Error saving progress:", error);
   }
 }
 
-export async function submitScore(username: string, gameId: string, score: number, metrics: any) {
-  const userRef = doc(db, 'users', username);
+export async function submitScore(localUser: UserProfile, gameId: string, score: number, metrics: any) {
+  const userRef = doc(db, 'users', localUser.username);
   const userSnap = await getDoc(userRef);
   
+  let user: UserProfile;
   if (!userSnap.exists()) {
-    throw new Error("User not found");
+    user = localUser;
+  } else {
+    user = userSnap.data() as UserProfile;
   }
 
-  const user = userSnap.data() as UserProfile;
   const newXp = Math.max(0, (user.totalXP || 0) + score);
   const newRank = getRankFromXP(newXp);
   const newTotalQuestions = (user.totalQuestionsAnswered || 0) + 1;
@@ -116,11 +118,11 @@ export async function submitScore(username: string, gameId: string, score: numbe
     correctAnswers: newCorrectAnswers
   };
 
-  await updateDoc(userRef, updates);
+  await setDoc(userRef, { ...user, ...updates }, { merge: true });
 
   const scoreRef = doc(collection(db, 'scores'));
   await setDoc(scoreRef, {
-    username,
+    username: localUser.username,
     gameId,
     score,
     metrics: JSON.stringify(metrics || {}),
@@ -132,9 +134,9 @@ export async function submitScore(username: string, gameId: string, score: numbe
 
 export async function unlockAchievementApi(username: string, achievementId: string) {
   const userRef = doc(db, 'users', username);
-  await updateDoc(userRef, {
+  await setDoc(userRef, {
     achievements: arrayUnion(achievementId)
-  });
+  }, { merge: true });
 }
 
 export function subscribeToLeaderboard(callback: (leaderboard: UserProfile[]) => void): () => void {

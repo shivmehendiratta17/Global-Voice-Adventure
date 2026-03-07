@@ -83,7 +83,7 @@ export const useGameStore = create<GameState>()(
         };
 
         // Fire and forget to backend
-        submitScore(state.user.username, gameId, score, metrics).catch(console.error);
+        submitScore(state.user, gameId, score, metrics).catch(console.error);
 
         return {
           user: {
